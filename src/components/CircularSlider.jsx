@@ -18,6 +18,21 @@ const CircularSlider = ({ radius = 100, min = 0, max = 100, initialValue = 50, o
     if (onChange) onChange(newValue);
   };
 
+  const handleTouchMove = (e) => {
+    const touch = e.touches[0];
+    const rect = containerRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const angle = Math.atan2(touch.clientY - centerY, touch.clientX - centerX);
+    let newValue = ((angle + Math.PI) / (2 * Math.PI)) * (max - min) + min;
+
+    if (newValue < min) newValue = min;
+    if (newValue > max) newValue = max;
+
+    setValue(newValue);
+    if (onChange) onChange(newValue);
+  };
+
   const handleMouseUp = () => {
     window.removeEventListener('mousemove', handleMouseMove);
     window.removeEventListener('mouseup', handleMouseUp);
@@ -26,6 +41,12 @@ const CircularSlider = ({ radius = 100, min = 0, max = 100, initialValue = 50, o
   const handleMouseDown = () => {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleTouchStart = (e) => {
+    e.preventDefault();
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleMouseUp);
   };
 
   useEffect(() => {
@@ -48,6 +69,7 @@ const CircularSlider = ({ radius = 100, min = 0, max = 100, initialValue = 50, o
         height: radius * 2,
       }}
       onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
     >
       <svg width={radius * 2} height={radius * 2}>
         {/* Outer circle */}
